@@ -118,7 +118,7 @@ class _HomeState extends State<Home> {
         ),
       ),
       body: Container(
-        child: taskList.isEmpty
+        child: filteredList.isEmpty
             ? Center(
                 child: Text('No Task to do..'),
               )
@@ -351,9 +351,8 @@ class _HomeState extends State<Home> {
             if (map != null) {
               if (!map['isUpdated']) {
                 setState(() {
-                  filteredList.add(map['task']);
+                  taskList.add(map['task']);
                 });
-                taskList.add(map['task']);
               }
             } else {}
           },
