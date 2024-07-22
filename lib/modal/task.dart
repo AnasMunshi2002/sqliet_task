@@ -5,9 +5,11 @@ class Task {
   int priority;
   String dueDate;
   String dueTime;
+  int? isCompleted = 0;
 
   Task(
-      {required this.title,
+      {this.isCompleted = 0,
+      required this.title,
       required this.description,
       required this.priority,
       required this.dueDate,
@@ -21,6 +23,7 @@ class Task {
       'priority': priority,
       'dueDate': dueDate,
       'dueTime': dueTime,
+      'isCompleted': isCompleted
     };
   }
 
@@ -31,6 +34,7 @@ class Task {
         description: map['description'],
         priority: map['priority'],
         dueDate: map['dueDate'],
-        dueTime: map['dueTime']);
+        dueTime: map['dueTime'],
+        isCompleted: map['isCompleted']);
   }
 }

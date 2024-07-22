@@ -29,7 +29,8 @@ class DbHelper {
             'description TEXT,'
             'priority INTEGER,'
             'dueDate TEXT,'
-            'dueTime TEXT);');
+            'dueTime TEXT,'
+            'isCompleted BOOLEAN);');
       },
       version: 1,
     );
@@ -51,6 +52,20 @@ class DbHelper {
   }
 
   Future<int> update(Task task) async {
+    int result = 0;
+    try {
+      var db = await _dbhelper._getDatabase();
+      result = await db.update(tableName, task.toMap(),
+          where: 'id = ?', whereArgs: [task.id]);
+
+      print('Update Successfully');
+    } catch (e) {
+      print(e.toString());
+    }
+    return result;
+  }
+
+  Future<int> updateCompleted(Task task) async {
     int result = 0;
     try {
       var db = await _dbhelper._getDatabase();

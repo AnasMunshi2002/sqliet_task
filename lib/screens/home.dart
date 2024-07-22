@@ -11,15 +11,15 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   DbHelper db = DbHelper();
-  List<Task> tasklist = [];
-  var _searchController = TextEditingController();
-  String segementValue = '';
+  List<Task> taskList = [];
+  final _searchController = TextEditingController();
+  String segmentValue = '';
 
   //initialize the list with db lists
   Future<void> init() async {
     var list = await db.select();
     setState(() {
-      tasklist = list;
+      taskList = list;
     });
   }
 
@@ -72,11 +72,36 @@ class _HomeState extends State<Home> {
                     label: Text('Priority'),
                   ),
                 ],
-                selected: {segementValue},
+                selected: {segmentValue},
                 onSelectionChanged: (p0) {
                   setState(() {
-                    segementValue = p0.first;
+                    segmentValue = p0.first;
                   });
+
+                  switch (segmentValue) {
+                    case 'PRIORITY':
+                      taskList.sort(
+                        (a, b) => int.parse(a.priority.toString())
+                            .compareTo(int.parse(b.priority.toString())),
+                      );
+                      break;
+                    case 'DATE':
+                      taskList.sort(
+                        (a, b) => a.dueDate
+                            .toString()
+                            .compareTo(b.dueDate.toString()),
+                      );
+                      print(taskList);
+                      break;
+                    case 'TIME':
+                      taskList.sort(
+                        (a, b) => a.dueTime
+                            .toString()
+                            .compareTo(b.dueTime.toString()),
+                      );
+                      print(taskList);
+                      break;
+                  }
                 },
               ),
               Divider(
@@ -89,45 +114,17 @@ class _HomeState extends State<Home> {
         ),
       ),
       body: Container(
-        child: tasklist.isEmpty
+        child: taskList.isEmpty
             ? Center(
                 child: Text('No Task to do..'),
               )
             : ListView.builder(
-                itemCount: tasklist.length,
+                itemCount: taskList.length,
                 itemBuilder: (context, index) {
-                  /*String todayDate = DateTime.now().toString().split(' ')[0];
-                  String todayTime = TimeOfDay.now().toString();
-                  bool isDue = (todayDate.compareTo(tasklist[index].dueDate) ==
-                              -1 &&
-                          todayTime.compareTo(tasklist[index].dueTime) == -1)
-                      ? true
-                      : false;*/
+                  Task task = taskList[index];
 
-                  switch (segementValue) {
-                    case 'PRIORITY':
-                      tasklist.sort(
-                        (a, b) => int.parse(a.priority.toString())
-                            .compareTo(int.parse(b.priority.toString())),
-                      );
-                      break;
-                    case 'DATE':
-                      tasklist.sort(
-                        (a, b) => a.dueDate
-                            .toString()
-                            .compareTo(b.dueDate.toString()),
-                      );
-                      break;
-                    case 'TIME':
-                      tasklist.sort(
-                        (a, b) => a.dueTime
-                            .toString()
-                            .compareTo(b.dueTime.toString()),
-                      );
-                      break;
-                  }
                   var prString = '';
-                  switch (tasklist[index].priority) {
+                  switch (task.priority) {
                     case 0:
                       prString = 'High';
                       break;
@@ -140,72 +137,191 @@ class _HomeState extends State<Home> {
                   }
 
                   Color bgColor = Colors.white;
-                  /*if (!isDue) {
-                    bgColor = Colors.blueAccent;
+                  if (task.isCompleted == 1) {
+                    bgColor = Colors.grey;
                   } else {
-
-                  }*/
-                  switch (tasklist[index].priority) {
-                    case 0:
-                      bgColor = Colors.red.shade200;
-                      break;
-                    case 1:
-                      bgColor = Colors.blue.shade200;
-                      break;
-                    case 2:
-                      bgColor = Colors.green.shade200;
-                      break;
+                    switch (task.priority) {
+                      case 0:
+                        bgColor = Colors.red.shade200;
+                        break;
+                      case 1:
+                        bgColor = Colors.blue.shade200;
+                        break;
+                      case 2:
+                        bgColor = Colors.green.shade200;
+                        break;
+                    }
                   }
                   return Card(
                     color: bgColor,
                     margin: EdgeInsets.symmetric(horizontal: 15, vertical: 7),
-                    child: ListTile(
-                      title: Text(tasklist[index].title,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 26)),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Priority : $prString'),
-                          Text('Due Date : ${tasklist[index].dueDate}'),
-                          Text('Due Time : ${tasklist[index].dueTime}'),
-                        ],
-                      ),
-                      trailing: PopupMenuButton(
-                        onSelected: (value) {
-                          switch (value) {
-                            case 1:
-                              updateTask(tasklist[index]);
-                              break;
-                            case 2:
-                              _deleteTask(tasklist[index], context);
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            child: ListTile(
-                              leading: Icon(Icons.check),
-                              title: Text('Mark as Completed'),
+                    child: task.isCompleted == 1
+                        ? Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ListTile(
+                                title: Text(
+                                    '${task.title} : ${task.description}',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 26,
+                                        decoration: task.isCompleted == 1
+                                            ? TextDecoration.lineThrough
+                                            : TextDecoration.none)),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Priority : $prString',
+                                      style: TextStyle(
+                                          decoration: task.isCompleted == 1
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none),
+                                    ),
+                                    Text(
+                                      'Due Date : ${task.dueDate}',
+                                      style: TextStyle(
+                                          decoration: task.isCompleted == 1
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none),
+                                    ),
+                                    Text(
+                                      'Due Time : ${task.dueTime}',
+                                      style: TextStyle(
+                                          decoration: task.isCompleted == 1
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none),
+                                    ),
+                                  ],
+                                ),
+                                trailing: PopupMenuButton(
+                                  onSelected: (value) {
+                                    switch (value) {
+                                      case 1:
+                                        markComplete(task);
+                                        break;
+                                      case 2:
+                                        updateTask(task);
+                                        break;
+                                      case 3:
+                                        _deleteTask(task, context);
+                                        break;
+                                    }
+                                  },
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      value: 1,
+                                      child: ListTile(
+                                        leading: Icon(Icons.check),
+                                        title: Text(task.isCompleted == 1
+                                            ? 'Mark as incompleted'
+                                            : 'Mark as Completed'),
+                                      ),
+                                    ),
+                                    PopupMenuItem(
+                                      child: ListTile(
+                                        title: Text('Edit'),
+                                        leading: Icon(Icons.edit),
+                                      ),
+                                      value: 2,
+                                    ),
+                                    PopupMenuItem(
+                                      value: 3,
+                                      child: ListTile(
+                                        leading:
+                                            Icon(Icons.delete_forever_outlined),
+                                        title: Text('Delete'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Positioned(
+                                  child: Text(
+                                'COMPLETED',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 30,
+                                    color: Color.fromRGBO(255, 255, 255, 99)),
+                              )),
+                            ],
+                          )
+                        : ListTile(
+                            title: Text(task.title,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 26,
+                                    decoration: task.isCompleted == 1
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Priority : $prString',
+                                  style: TextStyle(
+                                      decoration: task.isCompleted == 1
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none),
+                                ),
+                                Text(
+                                  'Due Date : ${task.dueDate}',
+                                  style: TextStyle(
+                                      decoration: task.isCompleted == 1
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none),
+                                ),
+                                Text(
+                                  'Due Time : ${task.dueTime}',
+                                  style: TextStyle(
+                                      decoration: task.isCompleted == 1
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none),
+                                ),
+                              ],
+                            ),
+                            trailing: PopupMenuButton(
+                              onSelected: (value) {
+                                switch (value) {
+                                  case 1:
+                                    markComplete(task);
+                                    break;
+                                  case 2:
+                                    updateTask(task);
+                                    break;
+                                  case 3:
+                                    _deleteTask(task, context);
+                                    break;
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  value: 1,
+                                  child: ListTile(
+                                    leading: Icon(Icons.check),
+                                    title: Text(task.isCompleted == 1
+                                        ? 'Mark as incompleted'
+                                        : 'Mark as Completed'),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  child: ListTile(
+                                    title: Text('Edit'),
+                                    leading: Icon(Icons.edit),
+                                  ),
+                                  value: 2,
+                                ),
+                                PopupMenuItem(
+                                  value: 3,
+                                  child: ListTile(
+                                    leading:
+                                        Icon(Icons.delete_forever_outlined),
+                                    title: Text('Delete'),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          PopupMenuItem(
-                            child: ListTile(
-                              title: Text('Edit'),
-                              leading: Icon(Icons.edit),
-                            ),
-                            value: 1,
-                          ),
-                          PopupMenuItem(
-                            value: 2,
-                            child: ListTile(
-                              leading: Icon(Icons.delete_forever_outlined),
-                              title: Text('Delete'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   );
                 }),
       ),
@@ -231,7 +347,7 @@ class _HomeState extends State<Home> {
             if (map != null) {
               if (!map['isUpdated']) {
                 setState(() {
-                  tasklist.add(map['task']);
+                  taskList.add(map['task']);
                 });
               }
             } else {}
@@ -259,7 +375,7 @@ class _HomeState extends State<Home> {
               int status = await db.deleteTask(task.id!);
               if (status > 0) {
                 setState(() {
-                  tasklist.removeWhere(
+                  taskList.removeWhere(
                     (element) => element.id == task.id,
                   );
                 });
@@ -285,13 +401,35 @@ class _HomeState extends State<Home> {
     if (map != null) {
       if (map['isUpdated']) {
         Task task = map['task'];
-        int index = tasklist.indexWhere(
+        int index = taskList.indexWhere(
           (element) => element.id == task.id,
         );
         setState(() {
-          tasklist[index] = task;
+          taskList[index] = task;
         });
       }
     }
+  }
+
+  Future<void> markComplete(Task task) async {
+    if (task.isCompleted == 1) {
+      task.isCompleted = 0;
+    } else {
+      task.isCompleted = 1;
+    }
+
+    db.updateCompleted(task).then((result) {
+      if (result > 0) {
+        print('Marked as complete');
+        int index = taskList.indexWhere(
+          (element) => element.id == task.id,
+        );
+        setState(() {
+          taskList[index].isCompleted = task.isCompleted;
+        });
+      } else {
+        print('Failed to mark complete');
+      }
+    });
   }
 }

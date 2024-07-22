@@ -283,13 +283,6 @@ class _AddTaskState extends State<AddTask> {
                         priorityInt = 2;
                         break;
                     }
-                    print('''
-                    title : $title,
-                    desc : $description
-                    priority : $priorityInt
-                    dueDate : $selectedDate,
-                    dueTime : ${selectedTime.toString().substring(10, selectedTime.toString().length - 1)}
-                    ''');
 
                     Task task = Task(
                         id: widget.task?.id,
@@ -297,7 +290,17 @@ class _AddTaskState extends State<AddTask> {
                         description: description,
                         priority: priorityInt,
                         dueDate: selectedDate.toString().split(' ')[0],
-                        dueTime: selectedTime.toString());
+                        dueTime: selectedTime.toString(),
+                        isCompleted: 0);
+
+                    print('''
+                    title : $title,
+                    desc : $description
+                    priority : $priorityInt
+                    dueDate : $selectedDate,
+                    dueTime : ${selectedTime.toString().substring(10, selectedTime.toString().length - 1)}
+                    isCompleted : ${task.isCompleted}
+                    ''');
 
                     if (widget.task != null) {
                       _updateTask(context, task);
