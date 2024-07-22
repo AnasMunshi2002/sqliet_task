@@ -12,6 +12,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   DbHelper db = DbHelper();
   List<Task> taskList = [];
+  List<Task> filteredList = [];
   final _searchController = TextEditingController();
   String segmentValue = '';
 
@@ -21,6 +22,7 @@ class _HomeState extends State<Home> {
     setState(() {
       taskList = list;
     });
+    filteredList = taskList;
   }
 
   @override
@@ -43,7 +45,9 @@ class _HomeState extends State<Home> {
                 margin: EdgeInsets.only(bottom: 9),
                 child: TextField(
                   controller: _searchController,
-                  onChanged: (value) {},
+                  onChanged: (value) {
+                    _search(value);
+                  },
                   decoration: InputDecoration(
                       suffixIcon: Icon(Icons.search),
                       hintText: 'Search your Tasks',
@@ -80,26 +84,26 @@ class _HomeState extends State<Home> {
 
                   switch (segmentValue) {
                     case 'PRIORITY':
-                      taskList.sort(
+                      filteredList.sort(
                         (a, b) => int.parse(a.priority.toString())
                             .compareTo(int.parse(b.priority.toString())),
                       );
                       break;
                     case 'DATE':
-                      taskList.sort(
+                      filteredList.sort(
                         (a, b) => a.dueDate
                             .toString()
                             .compareTo(b.dueDate.toString()),
                       );
-                      print(taskList);
+                      print(filteredList);
                       break;
                     case 'TIME':
-                      taskList.sort(
+                      filteredList.sort(
                         (a, b) => a.dueTime
                             .toString()
                             .compareTo(b.dueTime.toString()),
                       );
-                      print(taskList);
+                      print(filteredList);
                       break;
                   }
                 },
@@ -119,9 +123,9 @@ class _HomeState extends State<Home> {
                 child: Text('No Task to do..'),
               )
             : ListView.builder(
-                itemCount: taskList.length,
+                itemCount: filteredList.length,
                 itemBuilder: (context, index) {
-                  Task task = taskList[index];
+                  Task task = filteredList[index];
 
                   var prString = '';
                   switch (task.priority) {
@@ -347,14 +351,32 @@ class _HomeState extends State<Home> {
             if (map != null) {
               if (!map['isUpdated']) {
                 setState(() {
-                  taskList.add(map['task']);
+                  filteredList.add(map['task']);
                 });
+                taskList.add(map['task']);
               }
             } else {}
           },
         ),
       ),
     );
+  }
+
+  void _search(String text) {
+    List<Task> tempList = [];
+    if (text.isNotEmpty) {
+      tempList = taskList
+          .where(
+            (element) =>
+                element.title.toLowerCase().contains(text.toLowerCase()),
+          )
+          .toList();
+    } else {
+      tempList = taskList;
+    }
+    setState(() {
+      filteredList = tempList;
+    });
   }
 
   _deleteTask(Task task, BuildContext context) async {
@@ -375,6 +397,9 @@ class _HomeState extends State<Home> {
               int status = await db.deleteTask(task.id!);
               if (status > 0) {
                 setState(() {
+                  filteredList.removeWhere(
+                    (element) => element.id == task.id,
+                  );
                   taskList.removeWhere(
                     (element) => element.id == task.id,
                   );
@@ -401,12 +426,13 @@ class _HomeState extends State<Home> {
     if (map != null) {
       if (map['isUpdated']) {
         Task task = map['task'];
-        int index = taskList.indexWhere(
+        int index = filteredList.indexWhere(
           (element) => element.id == task.id,
         );
         setState(() {
-          taskList[index] = task;
+          filteredList[index] = task;
         });
+        taskList[index] = task;
       }
     }
   }
@@ -421,12 +447,13 @@ class _HomeState extends State<Home> {
     db.updateCompleted(task).then((result) {
       if (result > 0) {
         print('Marked as complete');
-        int index = taskList.indexWhere(
+        int index = filteredList.indexWhere(
           (element) => element.id == task.id,
         );
         setState(() {
-          taskList[index].isCompleted = task.isCompleted;
+          filteredList[index].isCompleted = task.isCompleted;
         });
+        taskList[index].isCompleted = task.isCompleted;
       } else {
         print('Failed to mark complete');
       }
