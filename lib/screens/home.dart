@@ -164,8 +164,7 @@ class _HomeState extends State<Home> {
                             alignment: Alignment.center,
                             children: [
                               ListTile(
-                                title: Text(
-                                    '${task.title} : ${task.description}',
+                                title: Text('${task.title}',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 26,
@@ -175,6 +174,16 @@ class _HomeState extends State<Home> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Text(
+                                      '${task.description}',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          decoration: task.isCompleted == 1
+                                              ? TextDecoration.lineThrough
+                                              : TextDecoration.none),
+                                    ),
                                     Text(
                                       'Priority : $prString',
                                       style: TextStyle(
@@ -251,7 +260,7 @@ class _HomeState extends State<Home> {
                             ],
                           )
                         : ListTile(
-                            title: Text(task.title,
+                            title: Text('${task.title}',
                                 style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 26,
@@ -261,6 +270,16 @@ class _HomeState extends State<Home> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Text(
+                                  '${task.description}',
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                      decoration: task.isCompleted == 1
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none),
+                                ),
                                 Text(
                                   'Priority : $prString',
                                   style: TextStyle(
